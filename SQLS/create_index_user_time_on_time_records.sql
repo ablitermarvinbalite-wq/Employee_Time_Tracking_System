@@ -1,0 +1,1 @@
+CREATE INDEX idx_user_time ON time_records(user_id, time_in);

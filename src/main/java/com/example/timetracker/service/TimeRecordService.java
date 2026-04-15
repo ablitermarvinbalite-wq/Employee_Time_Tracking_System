@@ -1,5 +1,6 @@
 package com.example.timetracker.service;
 
+import com.example.timetracker.dto.TimeRecordResponse;
 import com.example.timetracker.entity.TimeRecord;
 import com.example.timetracker.entity.User;
 import com.example.timetracker.repository.TimeRecordRepository;
@@ -9,6 +10,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.*;
 import java.util.Optional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +38,8 @@ public class TimeRecordService {
         LocalDateTime start = today.atStartOfDay();
         LocalDateTime end = today.atTime(LocalTime.MAX);
 
-        timeRecordRepository.findByUserAndTimeInBetween(user, start, end)
+        timeRecordRepository
+                .findFirstByUserAndTimeInBetween(user, start, end)
                 .ifPresent(r -> {
                     throw new RuntimeException("Already timed in today");
                 });
@@ -82,4 +87,57 @@ public class TimeRecordService {
 
         timeRecordRepository.save(record);
     }
+
+    public List<TimeRecordResponse> getUserRecords(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return timeRecordRepository.findByUser(user)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<TimeRecordResponse> getUserRecordsByDate(
+            Long userId,
+            LocalDateTime start,
+            LocalDateTime end
+    ) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return timeRecordRepository
+                .findByUserAndTimeInBetween(user, start, end)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<TimeRecordResponse> getAllRecords(
+            LocalDateTime start,
+            LocalDateTime end
+    ) {
+
+        return timeRecordRepository
+                .findByTimeInBetween(start, end)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private TimeRecordResponse mapToResponse(TimeRecord record) {
+        return TimeRecordResponse.builder()
+                .id(record.getId())
+                .userId(record.getUser().getId())
+                .username(record.getUser().getUsername())
+                .timeIn(record.getTimeIn())
+                .timeOut(record.getTimeOut())
+                .totalHours(record.getTotalHours())
+                .breakHours(record.getBreakHours())
+                .overtimeHours(record.getOvertimeHours())
+                .build();
+    }
+
 }

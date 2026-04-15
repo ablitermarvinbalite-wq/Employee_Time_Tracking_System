@@ -1,0 +1,15 @@
+let's create a simple java springboot app exercise.
+DB to use is mariaDB
+features:
+1. user login
+2. user register
+3. user records time in
+4. user records time out
+5. overtime auto compute
+6. break time auto compute
+7. normal time in-time out hours is 9 deducting 1 hour break
+8. overtime starts over 9 hours, every 9 hours accumulated overtime deducts 1 hour
+9. admin login
+10. admin approves register
+11. user calendar list of records
+12. admin view of users records
