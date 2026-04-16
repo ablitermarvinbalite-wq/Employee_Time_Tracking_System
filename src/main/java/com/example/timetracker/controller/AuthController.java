@@ -8,12 +8,15 @@ import org.springframework.web.bind.annotation.*;
 import com.example.timetracker.dto.LoginRequest;
 import com.example.timetracker.entity.User;
 
+import com.example.timetracker.security.JwtUtil;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public String register(@RequestBody RegisterRequest request) {
@@ -22,8 +25,17 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public User login(@RequestBody LoginRequest request) {
-        return userService.login(request.getUsername(), request.getPassword());
+    public String login(@RequestBody LoginRequest request) {
+
+        User user = userService.login(
+                request.getUsername(),
+                request.getPassword()
+        );
+
+        return jwtUtil.generateToken(
+                user.getUsername(),
+                user.getRole().name()
+        );
     }
 
 }
