@@ -1,5 +1,6 @@
 package com.example.timetracker.service;
 
+import com.example.timetracker.dto.DashboardResponse;
 import com.example.timetracker.dto.TimeRecordResponse;
 import com.example.timetracker.entity.TimeRecord;
 import com.example.timetracker.entity.User;
@@ -138,6 +139,100 @@ public class TimeRecordService {
                 .breakHours(record.getBreakHours())
                 .overtimeHours(record.getOvertimeHours())
                 .build();
+    }
+
+    public DashboardResponse getUserDashboard(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<TimeRecord> records = timeRecordRepository.findByUser(user);
+
+        double totalHours = 0;
+        double totalOvertime = 0;
+        double totalBreak = 0;
+
+        int workingDays = 0;
+
+        for (TimeRecord r : records) {
+            if (r.getTimeOut() != null) {
+                totalHours += safe(r.getTotalHours());
+                totalOvertime += safe(r.getOvertimeHours());
+                totalBreak += safe(r.getBreakHours());
+                workingDays++;
+            }
+        }
+
+        return DashboardResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .totalHours(totalHours)
+                .totalOvertime(totalOvertime)
+                .totalBreakHours(totalBreak)
+                .workingDays(workingDays)
+                .build();
+    }
+
+    private double safe(Double val) {
+        return val == null ? 0.0 : val;
+    }
+
+    public DashboardResponse getMonthlyDashboard(Long userId, int year, int month) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        LocalDateTime start = LocalDate.of(year, month, 1).atStartOfDay();
+        LocalDateTime end = start.plusMonths(1).minusSeconds(1);
+
+        List<TimeRecord> records =
+                timeRecordRepository.findByUserAndTimeInBetween(user, start, end);
+
+        double totalHours = 0;
+        double totalOvertime = 0;
+        double totalBreak = 0;
+        int workingDays = 0;
+
+        for (TimeRecord r : records) {
+            if (r.getTimeOut() != null) {
+                totalHours += safe(r.getTotalHours());
+                totalOvertime += safe(r.getOvertimeHours());
+                totalBreak += safe(r.getBreakHours());
+                workingDays++;
+            }
+        }
+
+        return DashboardResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .totalHours(totalHours)
+                .totalOvertime(totalOvertime)
+                .totalBreakHours(totalBreak)
+                .workingDays(workingDays)
+                .build();
+    }
+
+    public String exportCsv(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<TimeRecord> records = timeRecordRepository.findByUser(user);
+
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Date,Time In,Time Out,Total Hours,Break,Overtime\n");
+
+        for (TimeRecord r : records) {
+            sb.append(r.getTimeIn()).append(",")
+                    .append(r.getTimeOut()).append(",")
+                    .append(r.getTotalHours()).append(",")
+                    .append(r.getBreakHours()).append(",")
+                    .append(r.getOvertimeHours())
+                    .append("\n");
+        }
+
+        return sb.toString();
     }
 
 }
