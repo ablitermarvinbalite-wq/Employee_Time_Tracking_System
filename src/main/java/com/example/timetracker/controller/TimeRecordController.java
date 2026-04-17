@@ -1,5 +1,6 @@
 package com.example.timetracker.controller;
 
+import com.example.timetracker.dto.DashboardResponse;
 import com.example.timetracker.dto.TimeRecordResponse;
 import com.example.timetracker.service.TimeRecordService;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,25 @@ public class TimeRecordController {
                 LocalDateTime.parse(start),
                 LocalDateTime.parse(end)
         );
+    }
+
+    @GetMapping("/dashboard/{userId}")
+    public DashboardResponse dashboard(@PathVariable Long userId) {
+        return timeRecordService.getUserDashboard(userId);
+    }
+
+    @GetMapping("/dashboard/{userId}/monthly")
+    public DashboardResponse monthly(
+            @PathVariable Long userId,
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        return timeRecordService.getMonthlyDashboard(userId, year, month);
+    }
+
+    @GetMapping("/export/{userId}")
+    public String export(@PathVariable Long userId) {
+        return timeRecordService.exportCsv(userId);
     }
 
 }
