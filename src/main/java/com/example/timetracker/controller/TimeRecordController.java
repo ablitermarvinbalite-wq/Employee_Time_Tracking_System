@@ -2,7 +2,7 @@ package com.example.timetracker.controller;
 
 import com.example.timetracker.dto.DashboardResponse;
 import com.example.timetracker.dto.TimeRecordResponse;
-import com.example.timetracker.service.TimeRecordService;
+import com.example.timetracker.service.time.TimeRecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

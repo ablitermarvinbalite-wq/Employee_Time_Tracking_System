@@ -1,4 +1,4 @@
-package com.example.timetracker;
+package com.example.timetracker.controller.test;
 
 import org.springframework.web.bind.annotation.*;
 
