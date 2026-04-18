@@ -1,6 +1,6 @@
 package com.example.timetracker.controller;
 
-import com.example.timetracker.service.UserService;
+import com.example.timetracker.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

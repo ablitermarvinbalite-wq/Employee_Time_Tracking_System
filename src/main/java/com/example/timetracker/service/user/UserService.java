@@ -1,4 +1,4 @@
-package com.example.timetracker.service;
+package com.example.timetracker.service.user;
 
 import com.example.timetracker.entity.*;
 import com.example.timetracker.repository.UserRepository;
