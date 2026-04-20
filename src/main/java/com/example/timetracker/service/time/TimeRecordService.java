@@ -4,6 +4,8 @@ import com.example.timetracker.dto.DashboardResponse;
 import com.example.timetracker.dto.TimeRecordResponse;
 import com.example.timetracker.entity.TimeRecord;
 import com.example.timetracker.entity.User;
+import com.example.timetracker.exception.time.TimeRecordServiceException;
+import com.example.timetracker.exception.user.UserNotFoundException;
 import com.example.timetracker.repository.TimeRecordRepository;
 import com.example.timetracker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,12 +33,12 @@ public class TimeRecordService {
     public void timeIn(Long userId) {
         log.info("User {} timed in", userId);
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         // prevent multiple active sessions
         Optional<TimeRecord> active = timeRecordRepository.findByUserAndTimeOutIsNull(user);
         if (active.isPresent()) {
-            throw new RuntimeException("Already timed in");
+            throw new TimeRecordServiceException("Already timed in");
         }
 
         // prevent multiple time-in per day
@@ -47,7 +49,7 @@ public class TimeRecordService {
         timeRecordRepository
                 .findFirstByUserAndTimeInBetween(user, start, end)
                 .ifPresent(r -> {
-                    throw new RuntimeException("Already timed in today");
+                    throw new TimeRecordServiceException("Already timed in today");
                 });
 
         TimeRecord record = new TimeRecord();
@@ -61,11 +63,11 @@ public class TimeRecordService {
     public void timeOut(Long userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         TimeRecord record = timeRecordRepository
                 .findByUserAndTimeOutIsNull(user)
-                .orElseThrow(() -> new RuntimeException("No active time-in"));
+                .orElseThrow(() -> new TimeRecordServiceException("No active time-in"));
 
         LocalDateTime timeOut = LocalDateTime.now();
         record.setTimeOut(timeOut);
@@ -97,7 +99,7 @@ public class TimeRecordService {
     public List<TimeRecordResponse> getUserRecords(Long userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         return timeRecordRepository.findByUser(user)
                 .stream()
@@ -112,7 +114,7 @@ public class TimeRecordService {
     ) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         return timeRecordRepository
                 .findByUserAndTimeInBetween(user, start, end)
@@ -149,7 +151,7 @@ public class TimeRecordService {
     public DashboardResponse getUserDashboard(Long userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         List<TimeRecord> records = timeRecordRepository.findByUser(user);
 
@@ -185,7 +187,7 @@ public class TimeRecordService {
     public DashboardResponse getMonthlyDashboard(Long userId, int year, int month) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         LocalDateTime start = LocalDate.of(year, month, 1).atStartOfDay();
         LocalDateTime end = start.plusMonths(1).minusSeconds(1);
@@ -220,7 +222,7 @@ public class TimeRecordService {
     public String exportCsv(Long userId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         List<TimeRecord> records = timeRecordRepository.findByUser(user);
 
